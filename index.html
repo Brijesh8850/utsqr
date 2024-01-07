@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Search</title>
+  <style>
+   #imageNameInput {
+      width: 15rem;
+      height: 2rem;
+      background: lightblue;
+      margin: 0 auto;
+      margin-top: 1rem;
+     
+      /* Center the search box horizontally */
+      display: block;
+  
+    }
+    
+    #result img {
+     mix-blend-mode: color-burn;
+     
+      max-width: 100%;
+      max-height: 100%
+      border-radius: 10px;
+    
+    }
+    #searchbutton{
+      height:2.4rem;
+      background:#4284f5;
+    }
+    #suggestionTable {
+      width: 15rem;
+      border-collapse: collapse;
+    }
+    #suggestionTable td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      cursor: pointer;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    
+    nav {
+      background-color: #333;
+      overflow: hidden;
+    }
+    
+    nav a {
+      float: left;
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+    
+    nav a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+<nav>
+    <a href="#central" id="centralButton">Central</a>
+    <a href="#harbour" id="harbourButton">Harbour</a>
+    <a href="#western" id="westernButton">Western</a>
+    <a href="#trans" id="transButton">Trans</a>
+  </nav>
+  <input type="text" id="imageNameInput" placeholder="Enter Image Name" oninput="filterImageOptions()" onfocus="clearResult()">
+  <table id="suggestionTable"></table>
+  <br>
+  <div id="result"></div>
+
+  <script>
+const western = [
+  "churchgate",
+  "marine lines",
+  "charni road",
+  "grant road",
+  "mumbai central",
+  "mahalaxmi",
+  "lower parel",
+  "prabhadevi",
+  "dadar",
+  "matunga road",
+  "mahim junction",
+  "bandra",
+  "khar road",
+  "santacruz",
+  "ville parle",
+  "andheri",
+  "jogeshwari",
+  "goregaon",
+  "malad",
+  "kandivali",
+  "borivali",
+  "dahisar",
+  "mira road",
+  "bhayandar",
+  "naigaon",
+  "vasai road",
+  "nallasopara",
+  "virar",
+  "vaitarna*",
+  "saphale","kelva road*","palghar","umroli",
+  "boisar","vangaon","dahanu road"
+];
+
+const central = [
+  "csmt",
+  "masjid",
+  "sandhurst road",
+  "byculla",
+  "chinchpokali",
+  "currey road",
+  "parel",
+  "dadar",
+  "matunga",
+  "sion",
+  "kurla",
+  "vidyavihar",
+  "ghatkopar",
+  "vikhroli",
+  "kanjurmarg",
+  "bhandup",
+  "nahur",
+  "mulund",
+  "thane",
+  "kalva",
+  "mumbra",
+  "diva junction",
+  "dombivali",
+  "thakurli",
+  "kalyan","vithalwadi","ulhasnagar","ambernath","belapur","vangani","shelu","neral","bhivpuri","karjat","palasdhari","kelavali","dolavali","lowjee","khopoli","shahad","ambivli","titwala","khadavali","vasind","asangaon","atgaon","thansit","khardi","umbermali","kasara"
+];
+
+const harbour = [
+  "csmt",
+  "masjid",
+  "Sandhurst Road",
+  "dockyard road",
+  "reay road",
+  "cotton green",
+  "sewri*",
+  "vadala road",
+  ,"king circle","mahim junction","bandra","khar road","santacruz","ville parle","andheri","jogeshwari","ram mandir","goregaon",
+  "gtb nagar",
+  "chunnabhatti",
+  "kurla",
+  "tilak nagar",
+  "chembur",
+  "govandi",
+  "mankhurd",
+  "vashi",
+  "sanpada",
+  "juinagar",
+  "nerul",
+  "seawood darawe",
+  "badlapur",
+  "kharghar",
+  "mansarovar",
+  "khandeshwar",
+  "panvel"
+];
+trans = ["thane", "airoli", "rabale", "ghansoli", "kopar khairane", "turbhe", "juinagar", "nerul", "seawood darawe", "badlapur", "kharghar", "mansarovar", "khandeshwar", "panvel"]
+
+
+
+       const imageNames = [
+       "panvel", "khandeshwar", "mansa rovar", "kharghar", "belapur",
+      "seawood darawe", "nerul", "juinagar", "sanpada", "vashi", "mankhurd", "govandi","chembur", "tilak nagar", "kurla", "chunna bhatti", "gtb nagar", "goregaon", "ram mandir",
+      "jogeshwari", "andheri", "ville parle", "santa cruz", "khar road", "bandra", "mahim junction",
+      "kings circle", "vadala road", "sewri", "cotton green", "reay road", "dockyard road",
+      "sandhurst road", "masjid", "csmt", "kopar khairane",
+      "churchgate", "marine lines", "charni road", "grant road",
+      "mumbai central", "mahalaxmi", "lower parel", "prabhadevi", "dadar", "matunga road",
+      "malad", "kandivali", "borivali", "dahisar", "mira road", "bhayandar", "naigaon",
+      "vasai road", "nallasopara", "virar", "vaitarna", "saphale", "kelve road", "palghar",
+      "umroli", "boisar", "vangaon", "dahanu road", "byculla", "chinchpokali", "currey road",
+      "parel", "matunga", "sion", "vidya vihar", "ghatkopar", "vikhroli", "kanjur marg",
+      "bhandup", "nahur", "mulund", "thane", "mumbra", "diva junction", "kopar", "dombivali",
+      "thakurli", "kalyan", "shahad", "ambivli", "titwala", "khadavali", "vasind", "asangaon",
+      "atgaon", "khardi", "vithalwadi", "ulhasnagar", "ambernath", "badlapur", "vangani",
+      "shelu", "neral", "bhivpuri rd", "karjat", "palasdhari", "kelavali", "dolavali",
+      "lowjee", "khopoli", "airoli", "rabale", "ghansoli", "kalva", "thansit", "umbermali",
+      "kasara", "bamandongri", "kharkopar", "roha", "nidi", "mangaon", "apta", "dativali",
+       "hamarapur", "jite", "juchandra road", "jumapatti", "kaman road", "kasu",
+      "kharbao", "matheran", "nagothane", "nilje", "navade road", "kalamboli", "pen",
+      "rasayani", "somtane", "taloja panchanand", "waterpipe", "turbhe"
+    ];
+
+
+    function filterImageOptions() {
+      const imageNameInput = document.getElementById('imageNameInput');
+      const inputValue = imageNameInput.value.toLowerCase();
+      if (inputValue === '') {
+        suggestionList.innerHTML = '';
+        return;
+      }
+
+      const suggestions = imageNames.filter(name => name.toLowerCase().includes(inputValue));
+
+      // Display suggestions in a table
+      const suggestionTable = document.getElementById('suggestionTable');
+      suggestionTable.innerHTML = '';
+
+      suggestions.forEach(suggestion => {
+        const row = suggestionTable.insertRow();
+        const cell = row.insertCell(0);
+        const color=['csmt','byculla','dadar','kurla','ghatkopar','thane','dombivali','kalyan','ambernath','badlapur','karjat','khopoli','titwala','asangaon','kasara','churchgate','mumbai central','dadar','bandra','andheri','borivali','bhayandar','vasai','virar','dhanuroad','dahanu road','vadala road','mankhurd','vashi','nerul','belapur','kharghar','panvel'];
+        if  (color.includes(suggestion)) {
+          cell.style.color = 'red';
+          cell.style.fontWeight = 'bold';
+          cell.style.fontSize = '24px';// Specify color for specificName1
+        } else if (suggestion === 'specificName2') {
+          cell.style.color = 'blue';
+          cell.style.fontSize = '20px';// Specify color for specificName2
+        } else {
+          // Default color for other names
+          cell.style.color = 'black';
+        }
+        cell.textContent = suggestion;
+        cell.onclick = function() {
+          // Update the result directly without inserting into the search box
+          displayImageByName(suggestion);
+          suggestionTable.innerHTML = ''; // Clear suggestions after selection
+        };
+      });
+    }
+
+    function displayImageByName(selectedName) {
+      const resultDiv = document.getElementById('result');
+const imageName = selectedName.replace(/\s+/g, '').toLowerCase();
+
+      const folderPath = './image/';
+      const supportedFormats = ['jpg', 'jpeg', 'png', 'gif']; // Add more formats as needed
+      let imagePath = '';
+
+      // Check each supported format
+      for (const format of supportedFormats) {
+        const fullImagePath = `${folderPath}${imageName}.${format}`;
+        // Check if the image with the current format exists
+        if (imageExists(fullImagePath)) {
+          imagePath = fullImagePath;
+          break; // Stop checking if the image is found
+        }
+      }
+
+      if (imagePath !== '') {
+        // Set the src attribute of the img element directly
+        resultDiv.innerHTML = `<img src="${imagePath}" alt="Found Image">`;
+      } else {
+        resultDiv.innerHTML = 'Image not found.';
+      }
+    }
+
+     function searchImage() {
+      const imageNameInput = document.getElementById('imageNameInput');
+      const resultDiv = document.getElementById('result');
+
+      // Trim spaces explicitly before further processing
+      const imageName = imageNameInput.value.replace(/\s+/g, '').toLowerCase();
+
+      if (imageName !== '') {
+        const folderPath = './image/';
+        const supportedFormats = ['jpg', 'jpeg', 'png', 'gif']; // Add more formats as needed
+        let imagePath = '';
+
+        // Check each supported format
+        for (const format of supportedFormats) {
+          const fullImagePath = `${folderPath}${imageName}.${format}`;
+          // Check if the image with the current format exists
+          if (imageExists(fullImagePath)) {
+            imagePath = fullImagePath;
+            break; // Stop checking if the image is found
+          }
+        }
+
+        if (imagePath !== '') {
+          // Set the src attribute of the img element directly
+          resultDiv.innerHTML = `<img src="${imagePath}" alt="Found Image">`;
+        } else {
+          resultDiv.innerHTML = 'Image not found.';
+        }
+      } else {
+        resultDiv.innerHTML = 'Please enter an image name.';
+      }
+    }
+
+
+    // Function to check if an image exists
+    function imageExists(url) {
+      const http = new XMLHttpRequest();
+      http.open('HEAD', url, false);
+      http.send();
+      return http.status !== 404;
+    }
+
+    function clearResult() {
+      document.getElementById('result').innerHTML = ''; 
+      // Clear the result when input is focused
+    }
+
+     document.getElementById('westernButton').addEventListener('click', function() {
+       clearResult();
+      displayStations(western);
+    });
+
+    document.getElementById('centralButton').addEventListener('click', function() {
+      clearResult();
+      displayStations(central);
+    });
+
+    document.getElementById('harbourButton').addEventListener('click', function() {
+      clearResult();
+      displayStations(harbour);
+    });
+
+    document.getElementById('transButton').addEventListener('click', function() {
+      clearResult();
+      displayStations(trans)
+    });
+
+    function displayStations(stationArray) {
+      const suggestionTable = document.getElementById('suggestionTable');
+      suggestionTable.innerHTML = '';
+
+      stationArray.forEach(name => {
+        const row = suggestionTable.insertRow();
+        const cell = row.insertCell(0);
+        const color=['csmt','byculla','dadar','kurla','ghatkopar','thane','dombivali','kalyan','ambernath','badlapur','karjat','khopoli','titwala','asangaon','kasara','churchgate','mumbai central','dadar','bandra','andheri','borivali','bhayandar','vasai','virar','dhanuroad','dahanu road','vadala road','mankhurd','vashi','nerul','belapur','kharghar','panvel'];
+        if (color.includes(name)) {
+          cell.style.color = 'red'; 
+          cell.style.fontWeight = 'bold';
+          cell.style.fontSize = '24px';// Specify color for specificName1
+        } else {
+          // Default color for other names
+          cell.style.color = 'black';
+          cell.style.fontSize = '20px';
+        }
+        cell.textContent = name;
+        cell.onclick = function() {
+          // Update the result directly without inserting into the search box
+          displayImageByName(name);
+          suggestionTable.innerHTML = ''; // Clear suggestions after selection
+        };
+      });
+    }
+  </script>
+</body>
+</html>
+
+  
